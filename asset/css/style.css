@@ -2524,18 +2524,27 @@ div#scaleArrow:hover {
 .toggleParagraph:hover {
     color: #999;
 }
+.legend {
+    color: white !important;
+    font-size: 20px;
+    margin-bottom: 15px;
+}
 .bubble {
     display: inline;
     line-height: 2;
     font-size: 12px;
     color: white;
-    background-color: black;
+    background-color: darkblue;
     padding: 5px;
 }
+.bubble.original {
+    font-weight: bold;
+}
 .bubble.checkAll {
-    background-color: darkred;
+    background-color: gold;
     padding: 5px;
-    color: white;
+    color: black;
+    font-weight: bold;
 }
 .object .bubble {
     background-color: black;
@@ -2550,13 +2559,20 @@ div#scaleArrow:hover {
 div.context::before {
     content: "├─ ";
     font-family: monospace; font-size: 1em;
+    color: gold;
 }
 div.unit::before {
     content: "├─ ";
     font-family: monospace; font-size: 1em;
+    color: gold;
 }
 .context .bubble {
     background-color: #666;
+    color: white;
+    padding: 5px;
+}
+.context .bubble.model {
+    background-color: darkred;
     color: white;
     padding: 5px;
 }
@@ -2586,6 +2602,33 @@ div.unit::before {
     padding: 5px;
     margin-right: 5px;
 }
+.findLegend::before {
+    content: "│\00a0 \00a0  ├─ ";
+    font-family: monospace; font-size: 1em;
+    color: gold;
+}
+.findAnnotationLegend::before {
+    content: "│\00a0 \00a0 | \00a0 \00a0  ├─ ";
+    font-family: monospace; font-size: 1em;
+    color: gold;
+}
+.bubble.find {
+    background-color: #333 !important;
+    color: white;
+    padding: 5px;
+}
+.bubble.model {
+    background-color: darkred !important;
+    color: white;
+    padding: 5px;
+}
+.bubble.annotation {
+    background-color: gold !important;
+    color: black !important;
+    color: white;
+    padding: 5px;
+}
+
 .find {
     padding-bottom: 5px !important;
 }

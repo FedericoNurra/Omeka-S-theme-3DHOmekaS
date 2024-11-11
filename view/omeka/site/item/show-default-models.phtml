@@ -1,4 +1,5 @@
 <?php
+
 $mediaExtent = [];
 $lightMedia = [];
 $otherMedia = [];
@@ -16,8 +17,21 @@ foreach ($item->media() as $media) {
 }
 $tdExt = array('ply', 'nxs', 'nxz');
 $imgExt = array('image/jpeg', 'image/png');
-$gisExt = array("geojson");
-$vidExt = array("youtube");
+$gisExt = array("geojson", "kml");
+$ytExt = array("youtube");
+$videoExt = array("mp4", "ogv", "webm");
+$audioExt = array("mp3");
+$pdfExt = array("pdf");
+
+if ($linkedModels = $item->value('cidoc-crm:P138i_has_representation', ['all' => true])):
+	foreach ($linkedModels as $linkedModel):
+		if ($linkedModelsModels = $linkedModel->valueResource()->media()):
+			foreach ($linkedModelsModels as $linkedModelsModel):
+				array_push($mediaExtent, $linkedModelsModel->extension());
+			endforeach;				
+		endif;
+	endforeach;
+endif;
 ?>
 <div class="testHalfImg">
 	<div class="w3-bar w3-black">
@@ -29,9 +43,6 @@ $vidExt = array("youtube");
 	<?php endif; ?>
 	<?php if (array_intersect($mediaExtent, $imgExt)): ?>
   		<button class="w3-bar-item w3-button tablink" onclick="openTabs(event,'mediaTab')">Images</button>
-	<?php endif; ?>
-	<?php if (array_intersect($mediaExtent, $vidExt)): ?>
-  		<button class="w3-bar-item w3-button tablink" onclick="openTabs(event,'videoTab')">Videos</button>
 	<?php endif; ?>
 	</div>
 	<div id=3dhopParent>
@@ -100,7 +111,7 @@ $vidExt = array("youtube");
 			</div>
 			<div class="toggleLegend" id="toggleLegend" title="Show the layers" onclick="toggleLegend()"><i class="fas fa-bars"></i></div>
 			<div class="layerHopList">
-				<legend>Layers:</legend>
+				<div class="legend">Layers:</div>
 					<div class="bubble checkAll">
 						<input id="checkAll" class="layerCB" type="checkbox" style="cursor:hand;" onclick="checkAllModels();">Check All</input>
 					</div>
@@ -109,14 +120,50 @@ $vidExt = array("youtube");
 						<?php if ($media->extension() == "nxz" || $media->extension() == "nxs" || $media->extension() == "ply"): ?>
 							<div class="<?php echo "layer" . $media->id() . ""; ?>">
 								<div class="<?php echo $media->value('dcterms:type'); ?>">
-									<div class="bubble">
-										<input class="layerOK" type="checkbox" checked="checked" style="cursor:hand;" onclick="presenter.toggleInstanceVisibilityByName('<?php $paragraphName = "Model" . $media->id() . ""; echo $paragraphName ?>', true);">
+									<div class="bubble original">
+										<input class="layerOK" type="checkbox" checked="checked" style="cursor:hand;" onclick="presenter.toggleInstanceVisibilityByName('<?php $modelName = "Model" . $media->id() . ""; echo $modelName ?>', true);">
 										<?php echo $media->displayTitle(); ?> </input>
 									</div>
 								</div>
 							</div>
 						<?php endif; ?>
 					<?php endforeach; ?>
+					<?php if ($linkedModels = $item->value('dcterms:hasPart', ['all' => true])): ?>
+						<?php foreach($linkedModels as $linkedModel): ?>
+							<?php if ($linkedModelsMedias = $linkedModel->valueResource()->media()): ?>
+								<?php foreach($linkedModelsMedias as $linkedModelsMedia): ?>
+									<?php if ($linkedModelsMedia->extension() == "nxz" || $linkedModelsMedia->extension() == "ply" || $linkedModelsMedia->extension() == "nxs"): ?>
+										<div class="<?php echo "layer" . $linkedModelsMedia->id() . ""; ?>">
+											<div class="context">
+												<div class="bubble model">
+													<input class="layerOK" type="checkbox" checked="checked" style="cursor:hand;" onclick="presenter.toggleInstanceVisibilityByName('<?php $modelName = "Model" . $linkedModelsMedia->id() . ""; echo $modelName ?>', true);">
+													<?php echo $linkedModelsMedia->displayTitle(); ?> </input>
+												</div>
+											</div>
+										</div>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							<?php endif; ?>
+							<?php if ($linkedLinkedModels = $linkedModel->valueResource()->value('dcterms:hasPart', ['all' => true])): ?>
+								<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
+									<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
+										<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
+											<?php if ($linkedLinkedModelsMedia->extension() == "nxz" || $linkedLinkedModelsMedia->extension() == "ply" || $linkedLinkedModelsMedia->extension() == "nxs"): ?>
+												<div class="<?php echo "layer" . $linkedLinkedModelsMedia->id() . ""; ?>">
+													<div class="findLegend">
+														<div class="bubble model">
+															<input class="layerOK" type="checkbox" checked="checked" style="cursor:hand;" onclick="presenter.toggleInstanceVisibilityByName('<?php $modelName = "Model" . $linkedLinkedModelsMedia->id() . ""; echo $modelName ?>', true);">
+															<?php echo $linkedLinkedModelsMedia->displayTitle(); ?> </input>
+														</div>
+													</div>
+												</div>
+											<?php endif; ?>
+										<?php endforeach; ?>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</fieldset>
 			</div>
 			<canvas id="draw-canvas" style="background-image: url(<?php echo $this->assetUrl('skins/backgrounds/dark.jpg'); ?>)"/>
@@ -132,12 +179,6 @@ $vidExt = array("youtube");
 		<div class="tab" id="mediaTab">
 		<?php $template = 'omeka/site/item/show-default-media.phtml'; ?>
 		<?= $this->partial($template, $this->vars()) ?>
-		</div>
-	<?php endif; ?>
-	<?php if (array_intersect($mediaExtent, $vidExt)): ?>
-		<div class="tab" id="videoTab">
-			<?php $template = 'omeka/site/item/show-default-video.phtml'; ?>
-			<?= $this->partial($template, $this->vars()) ?>
 		</div>
 	<?php endif; ?>
 	</div>
@@ -272,12 +313,34 @@ function modifyScene0() {
 	presenter.setScene({
 		meshes: {
 			<?php if (count($otherMedia) > 0): ?>
-            <?php foreach($otherMedia as $media): ?>
-			<?php if ($media->extension() == "nxz" || $media->extension() == "nxs" || $media->extension() == "ply"): ?>
-			"<?php echo $media->displayTitle(); ?>" : { url: "<?php echo $media->originalUrl(); ?>" },
+            	<?php foreach($otherMedia as $media): ?>
+					<?php if ($media->extension() == "nxz" || $media->extension() == "nxs" || $media->extension() == "ply"): ?>
+					"<?php echo $media->displayTitle(); ?>" : { url: "<?php echo $media->originalUrl(); ?>" },
+            		<?php endif; ?>
+				<?php endforeach; ?>
             <?php endif; ?>
-			<?php endforeach; ?>
-            <?php endif; ?>
+			<?php if ($linkedModels = $item->value('dcterms:hasPart', ['all' => true])): ?>
+				<?php foreach($linkedModels as $linkedModel): ?>
+					<?php if ($linkedModelsMedias = $linkedModel->valueResource()->media()): ?>
+						<?php foreach($linkedModelsMedias as $linkedModelsMedia): ?>
+							<?php if ($linkedModelsMedia->extension() == "nxz" || $linkedModelsMedia->extension() == "ply" || $linkedModelsMedia->extension() == "nxs"): ?>
+								"<?php echo $linkedModelsMedia->displayTitle(); ?>" : { url: "<?php echo $linkedModelsMedia->originalUrl(); ?>" },
+							<?php endif; ?>
+						<?php endforeach; ?>
+					<?php endif; ?>
+					<?php if ($linkedLinkedModels = $linkedModel->valueResource()->value('dcterms:hasPart', ['all' => true])): ?>
+						<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
+							<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
+								<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
+									<?php if ($linkedLinkedModelsMedia->extension() == "nxz" || $linkedLinkedModelsMedia->extension() == "ply" || $linkedLinkedModelsMedia->extension() == "nxs"): ?>
+									"<?php echo $linkedLinkedModelsMedia->displayTitle(); ?>" : { url: "<?php echo $linkedLinkedModelsMedia->originalUrl(); ?>" },
+									<?php endif; ?>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			<?php endif; ?>
 		},
 		modelInstances : {
 			<?php if (count($otherMedia) > 0): ?>
@@ -290,8 +353,35 @@ function modifyScene0() {
 			<?php endif; ?>
 			<?php endforeach; ?>
             <?php endif; ?>
+			<?php if ($linkedModels = $item->value('dcterms:hasPart', ['all' => true])): ?>
+				<?php foreach ($linkedModels as $linkedModel): ?>
+					<?php if ($linkedModelsModels = $linkedModel->valueResource()->media()): ?>
+						<?php foreach ($linkedModelsModels as $linkedModelsModel): ?>
+							<?php if ($linkedModelsModel->extension() == "nxz" || $linkedModelsModel->extension() == "ply" || $linkedModelsModel->extension() == "nxs"): ?>
+								"<?php echo "Model" . $linkedModelsModel->id() . ""; ?>" : { mesh : "<?php echo $linkedModelsModel->displayTitle(); ?>",
+								useTransparency : false,
+								alpha : 1
+								},
+							<?php endif; ?>
+						<?php endforeach; ?> 
+					<?php endif; ?>
+					<?php if ($linkedLinkedModels = $linkedModel->valueResource()->value('dcterms:hasPart', ['all' => true])): ?>
+						<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
+							<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
+								<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
+									<?php if ($linkedLinkedModelsMedia->extension() == "nxz" || $linkedLinkedModelsMedia->extension() == "ply" || $linkedLinkedModelsMedia->extension() == "nxs"): ?>
+									"<?php echo "Model" . $linkedLinkedModelsMedia->id() . ""; ?>" : { mesh : "<?php echo $linkedLinkedModelsMedia->displayTitle(); ?>",
+									useTransparency : false,
+									alpha : 1
+									},
+									<?php endif; ?>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			<?php endif; ?>
 		},
-
 		trackball: {
 			type: <?php echo "SphereTrackball"; ?>,
 			trackOptions: {

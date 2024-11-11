@@ -1,6 +1,8 @@
 <?php
 $escape = $this->plugin('escapeHtml');
 $siteTitle = $site->title();
+$hyperlink = $this->plugin('hyperlink');
+$urlHelper = $this->plugin('url');
 $this->htmlElement('html')->setAttribute('lang', $this->lang());
 $this->headMeta()->setCharset('utf-8');
 $this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1');
@@ -9,8 +11,6 @@ $this->headTitle()->append($this->setting('installation_title', 'Omeka S'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/3dhop.css'));
 $this->headLink()->prependStylesheet($this->assetUrl('css/iconfonts.css', 'Omeka'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/style.css'));
-$this->headLink()->appendStylesheet($this->assetUrl('css/testStyle.css'));
-$this->headLink()->appendStylesheet($this->assetUrl('css/print.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/nav.css'));
 $this->headLink()->appendStylesheet($this->assetUrl('css/w3.css'));
 $this->headLink()->appendStylesheet('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css');
@@ -58,9 +58,13 @@ $userBar = $this->userBar();
                                     <a href="<?php echo $site->url(); ?>" class="site-title"><?php echo $this->pageTitle($site->title()); ?></a>
                                 </td>
                                 <?php if ($this->identity()): ?>
-                                <td>
-                                    <a href="/login" style="font-size: 24px;"><i title="connected (dashboard)" class="fas fa-user"></i></a>
-                                </td>
+                                    <td>
+                                        <a href="<?php echo $urlHelper('admin'); ?>" style="font-size: 24px;"><i title="connected (dashboard)" class="fas fa-user"></i></a>
+                                    </td>
+                                <?php else: ?>
+                                    <td>
+                                        <a href="<?php echo $urlHelper('login'); ?>" style="font-size: 24px;"><i title="disconnected (login)" class="fas fa-user-slash"></i></a>
+                                    </td>
                                 <?php endif; ?>
                             </tr>
                         </table>
