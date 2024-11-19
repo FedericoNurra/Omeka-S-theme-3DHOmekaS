@@ -4,41 +4,47 @@ $this->headMeta()->setCharset('utf-8');
 $lightMedia = [];
 $otherMedia = [];
 foreach ($item->media() as $media) {
-    $mediaType = $media->mediaType();
-    $mediaRenderer = $media->renderer();
-    if ((strpos($mediaType, 'image/') !== false)) {
-        $lightMedia[] = $media;
-    } else {
-        $otherMedia[] = $media;
-    }
+  $mediaType = $media->mediaType();
+  $mediaRenderer = $media->renderer();
+  if ($mediaType !== null && strpos($mediaType, 'image/') !== false) {
+      $lightMedia[] = $media;
+  } else {
+      $otherMedia[] = $media;
+  }
 }
+
 ?>
+
 <div id="mediaTabShow">
-  <div class="mediaContainer">
-    <!-- Slideshow container -->
-    <div class="slideshow-container">
-    <!-- Full-width images with number and caption text -->
-    <?php 
-    $i = 0;
-    $d = 0;
-    $countImg = count($lightMedia);
-    ?>
-    <?php foreach ($lightMedia as $media): ?>
-      <?php $source = $source = ($media->thumbnailUrl('large')); ?>
-        <div class="mySlides fade">
-          <div class="numbertext"><?php $i = $i+1; echo $i; ?> / <?php echo $countImg; ?></div>
-          <img src="<?php echo $source; ?>" style="width:100%">
-          <div class="text"><?php echo $media->displayTitle(); ?></div>
-        </div>
-    <?php endforeach ?>
+
+<div class="mediaContainer">
+ <!-- Slideshow container -->
+ <div class="slideshow-container">
+
+<!-- Full-width images with number and caption text -->
+<?php 
+$i = 0;
+$d = 0;
+$countImg = count($lightMedia);
+?>
+<?php foreach ($lightMedia as $media): ?>
+<?php $source = $source = ($media->thumbnailUrl('large')); ?>
+<div class="mySlides fade">
+  <div class="numbertext"><?php $i = $i+1; echo $i; ?> / <?php echo $countImg; ?></div>
+  <img src="<?php echo $source; ?>" style="width:100%">
+  <div class="text"><?php echo $media->displayTitle(); ?></div>
+</div>
+<?php endforeach ?>
+
 
 <!-- Next and previous buttons -->
 <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
 <a class="next" onclick="plusSlides(1)">&#10095;</a>
 </div>
 <br>
+
 <!-- The dots/circles -->
-<div class="mediaPoints" style="text-align:center">
+<div class="mediaPoints noMobile" style="text-align:center">
 <?php foreach ($lightMedia as $media): ?>
 <span class="dot" onclick="currentSlide(<?php $d = $d+1; echo $d; ?>)"></span>
 <?php endforeach ?>
@@ -74,4 +80,6 @@ function showSlides(n) {
   dots[slideIndex-1].className += " active";
 } 
 </script>
+
+
 </div>

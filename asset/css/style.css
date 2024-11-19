@@ -871,7 +871,7 @@ a {
   }
   .property .values,
   .property .value {
-    width: 95%;
+    width: 100%;
   }
   div .value .tag {
     width: 81.25%;

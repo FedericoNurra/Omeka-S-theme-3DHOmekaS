@@ -7,11 +7,11 @@ $otherMedia = [];
 foreach ($item->media() as $media) {
     $mediaType = $media->mediaType();
     $mediaRenderer = $media->renderer();
-    if ((strpos($mediaType, 'image/') !== false) || (strpos($mediaRenderer, 'youtube') !== false)) {
-        $lightMedia[] = $media;
-    } else {
-        $otherMedia[] = $media;
-    }
+	if ($mediaType !== null && strpos($mediaType, 'image/') !== false) {
+		$lightMedia[] = $media;
+	} else {
+		$otherMedia[] = $media;
+	}
 }
 ?>
 
@@ -56,7 +56,7 @@ foreach ($item->media() as $media) {
         <?php echo $this->resourcePageBlocks($item, "secondary")->getBlocks(); ?>
     </div>
 <!-- item 3D models -->
-    <?php $template = 'omeka/site/item/show-default-models.phtml'; ?>
+    <?php $template = 'omeka/site/item/show-media-models.phtml'; ?>
     <?= $this->partial($template, $this->vars()) ?>
 </div>
 </div>

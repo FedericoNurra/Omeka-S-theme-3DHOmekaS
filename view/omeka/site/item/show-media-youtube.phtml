@@ -1,0 +1,28 @@
+<?php
+$this->htmlElement('html')->setAttribute('lang', $this->lang());
+$this->headMeta()->setCharset('utf-8');
+$lightMedia = [];
+$otherMedia = [];
+foreach ($item->media() as $media) {
+    $mediaType = $media->mediaType();
+    $mediaRenderer = $media->renderer();
+    if ((strpos($media->renderer(), 'youtube') !== false)) {
+        $lightMedia[] = $media;
+    } else {
+        $otherMedia[] = $media;
+    }
+}
+?>
+
+<div class="videoContainer">
+<?php foreach ($lightMedia as $video): ?>
+    <?php echo $video->render(); ?>
+<?php endforeach; ?>
+</div>
+<script>
+jQuery(document).ready(function() {
+var height = $(window).height();
+$('iframe').css('width', '800px');
+$('iframe').css('height', '600px');
+});
+</script>

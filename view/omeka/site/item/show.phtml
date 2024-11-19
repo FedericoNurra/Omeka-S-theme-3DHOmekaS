@@ -15,11 +15,11 @@ $otherMedia = [];
 foreach ($item->media() as $media) {
     $mediaType = $media->mediaType();
     $mediaRenderer = $media->renderer();
-    if ((strpos($mediaType, 'image/') !== false) || (strpos($mediaRenderer, 'youtube') !== false)) {
-        $lightMedia[] = $media;
-    } else {
-        $otherMedia[] = $media;
-    }
+	if ($mediaType !== null && strpos($mediaType, 'image/') !== false) {
+		$lightMedia[] = $media;
+	} else {
+		$otherMedia[] = $media;
+	}
 }
 ?>
 <?php $this->trigger('view.show.before'); ?>

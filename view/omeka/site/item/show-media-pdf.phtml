@@ -1,0 +1,31 @@
+<?php
+$this->htmlElement('html')->setAttribute('lang', $this->lang());
+$this->headMeta()->setCharset('utf-8');
+$lightMedia = [];
+$otherMedia = [];
+foreach ($item->media() as $media) {
+    $mediaType = $media->mediaType();
+    $mediaRenderer = $media->renderer();
+    if ((strpos($media->renderer(), 'youtube') !== false)) {
+        $lightMedia[] = $media;
+    } else {
+        $otherMedia[] = $media;
+    }
+}
+?>
+
+<div class="videoContainer">
+    <div class="pdfContainer" style="display:block">
+        <?php foreach ($otherMedia as $media): ?>
+            <?php if ($media->extension() == "pdf"): ?>
+                <div class="pdfEmbed">
+                <h3><?php echo $media->displayTitle(); ?>:</h3>
+                <object data="<?php echo $media->originalUrl(); ?>" type="application/pdf" width="100%" height="500px">
+                <p>Unable to display PDF file. <a href="<?php echo $media->originalUrl(); ?>"><span style="font-weight:bold;color:darkred">Download</span></a> instead.</p>
+                </object>
+                <br />
+                </div>
+            <?php endif; ?>
+        <?php endforeach ?>
+    </div>
+</div>

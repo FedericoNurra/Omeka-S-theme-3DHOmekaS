@@ -1,0 +1,27 @@
+<?php
+$this->htmlElement('html')->setAttribute('lang', $this->lang());
+$this->headMeta()->setCharset('utf-8');
+$lightMedia = [];
+$otherMedia = [];
+foreach ($item->media() as $media) {
+    $mediaType = $media->mediaType();
+    $mediaRenderer = $media->renderer();
+    if ((strpos($media->renderer(), 'youtube') !== false)) {
+        $lightMedia[] = $media;
+    } else {
+        $otherMedia[] = $media;
+    }
+}
+?>
+
+<div class="videoContainer">
+    <?php foreach ($otherMedia as $media): ?>
+        <?php if ($media->extension() == "mp3"): ?>
+            <figure style="margin:20px">
+                <figcaption><?php echo $media->displayTitle(); ?>:</figcaption>
+                <audio controls src="<?php echo $media->originalUrl(); ?>"></audio>
+            </figure>
+            <br />
+        <?php endif; ?>
+    <?php endforeach ?>
+</div>

@@ -9,11 +9,12 @@ foreach ($item->media() as $media) {
 	array_push($mediaExtent, $media->extension());
     $mediaType = $media->mediaType();
     $mediaRenderer = $media->renderer();
-    if ((strpos($mediaType, 'image/') !== false) || (strpos($mediaRenderer, 'youtube') !== false)) {
-        $lightMedia[] = $media;
-    } else {
-        $otherMedia[] = $media;
-    }
+	$mediaRenderer = $media->renderer();
+	if ($mediaType !== null && strpos($mediaType, 'image/') !== false) {
+		$lightMedia[] = $media;
+	} else {
+		$otherMedia[] = $media;
+	}
 }
 $tdExt = array('ply', 'nxs', 'nxz');
 $imgExt = array('image/jpeg', 'image/png');
@@ -35,19 +36,26 @@ endif;
 ?>
 <div class="testHalfImg">
 	<div class="w3-bar w3-black">
-	<?php if (array_intersect($mediaExtent, $tdExt)): ?>  
-  		<button class="w3-bar-item w3-button tablink" onclick="openTabs(event,'3dhop')">3D Models</button>
-	<?php endif; ?>
-	<?php if (array_intersect($mediaExtent, $gisExt)): ?>  
-  		<button class="w3-bar-item w3-button tablink" onclick="openTabs(event,'gisData')">GIS Data</button>
-	<?php endif; ?>
-	<?php if (array_intersect($mediaExtent, $imgExt)): ?>
-  		<button class="w3-bar-item w3-button tablink" onclick="openTabs(event,'mediaTab')">Images</button>
-	<?php endif; ?>
+		<?php
+		$tabButtons = [
+			'tdExt' => ['label' => '3D Models', 'tab' => '3dhop'],
+			'gisExt' => ['label' => 'GIS Data', 'tab' => 'gisData'],
+			'imgExt' => ['label' => 'Images', 'tab' => 'mediaTab'],
+			'ytExt' => ['label' => 'YouTube', 'tab' => 'youtubeTab'],
+			'videoExt' => ['label' => 'Videos', 'tab' => 'videoTab'],
+			'audioExt' => ['label' => 'Audios', 'tab' => 'audioTab'],
+			'pdfExt' => ['label' => 'PDF', 'tab' => 'pdfTab']
+		];
+		foreach ($tabButtons as $extType => $button) {
+			if (array_intersect($mediaExtent, $$extType)) {
+				echo '<button class="w3-bar-item w3-button tablink" onclick="openTabs(event, \'' . $button['tab'] . '\')">' . $button['label'] . '</button>';
+			}
+		}
+		?>
 	</div>
 	<div id=3dhopParent>
 	<?php if (array_intersect($mediaExtent, $tdExt)): ?> 
-		<div id="3dhop" class="tdhop tab" onmousedown="if (event.preventDefault) event.preventDefault()"><!--<div id="tdhlg"></div>-->
+		<div id="3dhop" class="tdhop tab" onmousedown="if (event.preventDefault) event.preventDefault()">
 			<div id="toolbar">
 				<img id="home" title="Home" src="<?php echo $this->assetUrl('skins/dark/home.png'); ?>" /><br/>
 				<img id="zoomin" title="Zoom In" src="<?php echo $this->assetUrl('skins/dark/zoomin.png'); ?>" /><br/>
@@ -117,7 +125,7 @@ endif;
 					</div>
 					<fieldset>
 					<?php foreach($otherMedia as $media): ?>
-						<?php if ($media->extension() == "nxz" || $media->extension() == "nxs" || $media->extension() == "ply"): ?>
+						<?php if (in_array($media->extension(), ["nxz", "ply", "nxs"])): ?>
 							<div class="<?php echo "layer" . $media->id() . ""; ?>">
 								<div class="<?php echo $media->value('dcterms:type'); ?>">
 									<div class="bubble original">
@@ -132,7 +140,7 @@ endif;
 						<?php foreach($linkedModels as $linkedModel): ?>
 							<?php if ($linkedModelsMedias = $linkedModel->valueResource()->media()): ?>
 								<?php foreach($linkedModelsMedias as $linkedModelsMedia): ?>
-									<?php if ($linkedModelsMedia->extension() == "nxz" || $linkedModelsMedia->extension() == "ply" || $linkedModelsMedia->extension() == "nxs"): ?>
+									<?php if (in_array($linkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
 										<div class="<?php echo "layer" . $linkedModelsMedia->id() . ""; ?>">
 											<div class="context">
 												<div class="bubble model">
@@ -148,7 +156,7 @@ endif;
 								<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
 									<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
 										<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
-											<?php if ($linkedLinkedModelsMedia->extension() == "nxz" || $linkedLinkedModelsMedia->extension() == "ply" || $linkedLinkedModelsMedia->extension() == "nxs"): ?>
+											<?php if (in_array($linkedLinkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
 												<div class="<?php echo "layer" . $linkedLinkedModelsMedia->id() . ""; ?>">
 													<div class="findLegend">
 														<div class="bubble model">
@@ -169,18 +177,23 @@ endif;
 			<canvas id="draw-canvas" style="background-image: url(<?php echo $this->assetUrl('skins/backgrounds/dark.jpg'); ?>)"/>
 		</div>
 	<?php endif; ?>
-	<?php if (array_intersect($mediaExtent, $gisExt)): ?>
-		<div class="tab" id="gisData">
-			<?php $template = 'omeka/site/item/show-default-gis.phtml'; ?>
-			<?= $this->partial($template, $this->vars()) ?>
-		</div>
-	<?php endif; ?>
-	<?php if (array_intersect($mediaExtent, $imgExt)): ?>
-		<div class="tab" id="mediaTab">
-		<?php $template = 'omeka/site/item/show-default-media.phtml'; ?>
-		<?= $this->partial($template, $this->vars()) ?>
-		</div>
-	<?php endif; ?>
+	<?php
+	$mediaTabs = [
+		'gisExt' => ['id' => 'gisData', 'template' => 'omeka/site/item/show-media-gis.phtml'],
+		'imgExt' => ['id' => 'mediaTab', 'template' => 'omeka/site/item/show-media-images.phtml'],
+		'ytExt' => ['id' => 'youtubeTab', 'template' => 'omeka/site/item/show-media-youtube.phtml'],
+		'pdfExt' => ['id' => 'pdfTab', 'template' => 'omeka/site/item/show-media-pdf.phtml'],
+		'videoExt' => ['id' => 'videoTab', 'template' => 'omeka/site/item/show-media-video.phtml'],
+		'audioExt' => ['id' => 'audioTab', 'template' => 'omeka/site/item/show-media-audio.phtml']
+	];
+	foreach ($mediaTabs as $extType => $tab) {
+		if (array_intersect($mediaExtent, $$extType)) {
+			echo '<div class="tab" id="' . $tab['id'] . '">';
+			echo $this->partial($tab['template'], $this->vars());
+			echo '</div>';
+		}
+	}
+	?>
 	</div>
 
 <script type="text/javascript">
@@ -314,7 +327,7 @@ function modifyScene0() {
 		meshes: {
 			<?php if (count($otherMedia) > 0): ?>
             	<?php foreach($otherMedia as $media): ?>
-					<?php if ($media->extension() == "nxz" || $media->extension() == "nxs" || $media->extension() == "ply"): ?>
+					<?php if (in_array($media->extension(), ["nxz", "ply", "nxs"])): ?>
 					"<?php echo $media->displayTitle(); ?>" : { url: "<?php echo $media->originalUrl(); ?>" },
             		<?php endif; ?>
 				<?php endforeach; ?>
@@ -323,7 +336,7 @@ function modifyScene0() {
 				<?php foreach($linkedModels as $linkedModel): ?>
 					<?php if ($linkedModelsMedias = $linkedModel->valueResource()->media()): ?>
 						<?php foreach($linkedModelsMedias as $linkedModelsMedia): ?>
-							<?php if ($linkedModelsMedia->extension() == "nxz" || $linkedModelsMedia->extension() == "ply" || $linkedModelsMedia->extension() == "nxs"): ?>
+							<?php if (in_array($linkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
 								"<?php echo $linkedModelsMedia->displayTitle(); ?>" : { url: "<?php echo $linkedModelsMedia->originalUrl(); ?>" },
 							<?php endif; ?>
 						<?php endforeach; ?>
@@ -332,7 +345,7 @@ function modifyScene0() {
 						<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
 							<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
 								<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
-									<?php if ($linkedLinkedModelsMedia->extension() == "nxz" || $linkedLinkedModelsMedia->extension() == "ply" || $linkedLinkedModelsMedia->extension() == "nxs"): ?>
+									<?php if (in_array($linkedLinkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
 									"<?php echo $linkedLinkedModelsMedia->displayTitle(); ?>" : { url: "<?php echo $linkedLinkedModelsMedia->originalUrl(); ?>" },
 									<?php endif; ?>
 								<?php endforeach; ?>
@@ -345,7 +358,7 @@ function modifyScene0() {
 		modelInstances : {
 			<?php if (count($otherMedia) > 0): ?>
             <?php foreach($otherMedia as $media): ?>
-			<?php if ($media->extension() == "nxz" || $media->extension() == "nxs" || $media->extension() == "ply"): ?>
+				<?php if (in_array($media->extension(), ["nxz", "ply", "nxs"])): ?>
 			"<?php echo "Model" . $media->id() . ""; ?>" : { mesh : "<?php echo $media->displayTitle(); ?>",
 				useTransparency : false,
 					alpha : 1
@@ -369,7 +382,7 @@ function modifyScene0() {
 						<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
 							<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
 								<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
-									<?php if ($linkedLinkedModelsMedia->extension() == "nxz" || $linkedLinkedModelsMedia->extension() == "ply" || $linkedLinkedModelsMedia->extension() == "nxs"): ?>
+									<?php if (in_array($linkedLinkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
 									"<?php echo "Model" . $linkedLinkedModelsMedia->id() . ""; ?>" : { mesh : "<?php echo $linkedLinkedModelsMedia->displayTitle(); ?>",
 									useTransparency : false,
 									alpha : 1
@@ -383,13 +396,13 @@ function modifyScene0() {
 			<?php endif; ?>
 		},
 		trackball: {
-			type: <?php echo "SphereTrackball"; ?>,
+			type: <?php echo "TurntablePanTrackball"; ?>,
 			trackOptions: {
 				startPhi      : <?php echo "1"; ?>,
 				startTheta    : <?php echo "90.0"; ?>,
 				startDistance : <?php echo "1.0"; ?>,
 				minMaxPhi     : <?php echo "[-180, 180]"; ?>,
-				minMaxTheta   : <?php echo "[-90, 90.0]"; ?>,
+				minMaxTheta   : <?php echo "[-180, 180.0]"; ?>,
 				minMaxDist    : <?php echo "[0.01, 2.0]"; ?>,
 				startPanX     : <?php echo "0.0"; ?>,
 				startPanY     : <?php echo "0.0"; ?>,
@@ -397,8 +410,8 @@ function modifyScene0() {
 				startAngleY   : <?php echo "0.0"; ?>,
 				minMaxPanX    : <?php echo "[-0.7, 0.7]"; ?>,
 				minMaxPanY    : <?php echo "[-0.7, 0.7]"; ?>,
-				minMaxAngleX  : <?php echo "[-70.0, 70.0]"; ?>,
-				minMaxAngleY  : <?php echo "[-70.0, 70.0]"; ?>,
+				minMaxAngleX  : <?php echo "[-180.0, 180.0]"; ?>,
+				minMaxAngleY  : <?php echo "[-180.0, 180.0]"; ?>,
 			}
 		},
 		space: {
