@@ -34,6 +34,7 @@ if ($linkedModels = $item->value('cidoc-crm:P138i_has_representation', ['all' =>
 	endforeach;
 endif;
 ?>
+
 <div class="testHalfImg">
 	<div class="w3-bar w3-black">
 		<?php
@@ -56,68 +57,152 @@ endif;
 	<div id=3dhopParent>
 	<?php if (array_intersect($mediaExtent, $tdExt)): ?> 
 		<div id="3dhop" class="tdhop tab" onmousedown="if (event.preventDefault) event.preventDefault()">
-			<div id="toolbar">
-				<img id="home" title="Home" src="<?php echo $this->assetUrl('skins/dark/home.png'); ?>" /><br/>
-				<img id="zoomin" title="Zoom In" src="<?php echo $this->assetUrl('skins/dark/zoomin.png'); ?>" /><br/>
-				<img id="zoomout" title="Zoom Out" src="<?php echo $this->assetUrl('skins/dark/zoomout.png'); ?>" /><br/>
-				<img id="light_on" title="Disable Light Control" src="<?php echo $this->assetUrl('skins/dark/lightcontrol_on.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="light" title="Enable Light Control"  src="<?php echo $this->assetUrl('skins/dark/lightcontrol.png'); ?>" /><br/>
-				<img id="lighting_off" title="Enable Lighting"       src="<?php echo $this->assetUrl('skins/dark/lighting_off.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="lighting"     title="Disable Lighting"      src="<?php echo $this->assetUrl('skins/dark/lighting.png'); ?>" /><br/>
-				<img id="color_tr" title="Show textured"       src="<?php echo $this->assetUrl('skins/dark/color_tr.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="color_on" title="Enable Color"       src="<?php echo $this->assetUrl('skins/dark/color_on.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="color_off"     title="Disable Color"      src="<?php echo $this->assetUrl('skins/dark/color.png'); ?>" /><br/>
-				<img id="perspective" title="Perspective Camera" src="<?php echo $this->assetUrl('skins/dark/perspective.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="orthographic" title="Orthographic Camera" src="<?php echo $this->assetUrl('skins/dark/orthographic.png'); ?>" /><br/>
-				<img id="measure_on" title="Disable Measure Tool" src="<?php echo $this->assetUrl('skins/dark/measure_on.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="measure" title="Enable Measure Tool" src="<?php echo $this->assetUrl('skins/dark/measure.png'); ?>" /><br/>
-				<img id="pick_on" title="Disable PickPoint Mode"src="<?php echo $this->assetUrl('skins/dark/pick_on.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="pick" title="Enable PickPoint Mode" src="<?php echo $this->assetUrl('skins/dark/pick.png'); ?>" /><br/>
-				<img id="sections_on" title="Disable Plane Sections" src="<?php echo $this->assetUrl('skins/dark/sections_on.png'); ?>"     style="position:absolute; visibility:hidden;"/>
-				<img id="sections" title="Enable Plane Sections" src="<?php echo $this->assetUrl('skins/dark/sections.png'); ?>" /><br/>
-				<img id="screenshot" title="Save Screenshot" src="<?php echo $this->assetUrl('skins/dark/screenshot.png'); ?>" /><br/>
-				<img id="full_on" title="Exit Full Screen" src="<?php echo $this->assetUrl('skins/dark/full_on.png'); ?>" style="position:absolute; visibility:hidden;"/>
-				<img id="full" title="Full Screen" src="<?php echo $this->assetUrl('skins/dark/full.png'); ?>" /><br/>
+			<!-- Toolbar personnalisée -->
+			<div id="custom-toolbar">
+				<button class="tool-btn" id="toggleToolbar" onclick="toggleToolbar()"><i class="fa-solid fa-toolbox"></i></button>
+				<div id="toggled-toolbar" class="hidden">
+					<!-- Vue initiale -->
+					<button class="tool-btn" data-action="home" onclick="actionsToolbar('home')" title="Vue initiale">
+						<i class="fas fa-home"></i>
+					</button>
+					<!-- Zoom -->
+					<button class="tool-btn" data-action="zoomin" onclick="actionsToolbar('zoomin')" title="Zoom avant">
+						<i class="fas fa-search-plus"></i>
+					</button>
+					<button class="tool-btn" data-action="zoomout" onclick="actionsToolbar('zoomout')" title="Zoom arrière">
+						<i class="fas fa-search-minus"></i>
+					</button>
+					<!-- Contrôle de lumière -->
+					<button class="tool-btn" data-action="light" onclick="actionsToolbar('light')" title="Contrôle de la lumière">
+						<i class="fa-regular fa-lightbulb"></i> <!-- état initial = désactivé -->
+					</button>
+					<!-- Éclairage -->
+					<button class="tool-btn" data-action="lighting" onclick="actionsToolbar('lighting')" title="Activer/Désactiver l’éclairage">
+						<i class="fa-solid fa-sun"></i>
+					</button>
+					<!-- Modes couleur -->
+					<button id="color_on" style="display:none;" class="tool-btn color-btn" data-color="1" onclick="actionsToolbar('color1')" title="Mode couleur plein">
+						<i class="fas fa-brush"></i>					
+					</button>
+					<button id="color_off" class="tool-btn color-btn" data-color="2" onclick="actionsToolbar('color2')" title="Mode transparent">
+						<i class="fa-solid fa-palette"></i>
+					</button>
+					<button id="color_tr" style="display:none;" class="tool-btn color-btn" data-color="3" onclick="actionsToolbar('color3')" title="Couleur unie">
+						<i class="fa-solid fa-droplet-slash"></i>
+					</button>
+					<!-- Caméra -->
+					<button id="perspective-btn" class="tool-btn" data-action="perspective" onclick="actionsToolbar('perspective')" title="Changer le type de caméra">
+						<i id="camera-icon-persp" class="fas fa-cube"></i>
+						<i id="camera-icon-ortho" class="fa-regular fa-square" style="display:none;"></i>
+					</button>
+					<!-- Outils -->
+					<button class="tool-btn" data-action="measure" onclick="actionsToolbar('measure')" title="Outil de mesure">
+						<i class="fas fa-ruler"></i>
+					</button>
+					<button class="tool-btn" data-action="pick" onclick="actionsToolbar('pick')" title="Coordonnées (PickPoint)">
+						<i class="fas fa-crosshairs"></i>
+					</button>
+					<button class="tool-btn" data-action="sections" onclick="toggleSections()" title="Sections planes">
+						<i class="fas fa-layer-group"></i>
+					</button>
+					<!-- Capture & plein écran -->
+					<button class="tool-btn" data-action="screenshot" onclick="actionsToolbar('screenshot')" title="Capture d’écran">
+						<i class="fas fa-camera"></i>
+					</button>
+					<button class="tool-btn" data-action="full" onclick="actionsToolbar('full')" title="Plein écran">
+						<i class="fa-solid fa-expand"></i>
+					</button>
+				</div>
 			</div>
-			<div id="sections-box" class="output-box">
-				<table class="output-table" onmousedown="event.stopPropagation()">
-					<tr><td>Plane</td><td>Position</td><td>Flip</td></tr>
-					<tr><td><hr/></td><td><hr/></td><td><hr/></td></tr>
-					<tr>
-						<td><img id="xplane_on" title="Disable X Axis Section" src="<?php echo $this->assetUrl('skins/icons/sectionX_on.png'); ?>" onclick="sectionxSwitch()" style="position:absolute; visibility:hidden; border:1px inset;"/>
-							<img id="xplane" title="Enable X Axis Section" src="<?php echo $this->assetUrl('skins/icons/sectionX.png'); ?>" onclick="sectionxSwitch()"/><br/></td>
-						<td><input id="xplaneSlider" class="output-input" type="range" title="Move X Axis Section Position"/></td> 
-						<td><input id="xplaneFlip" class="output-input" type="checkbox" title="Flip X Axis Section Direction"/></td>
-					</tr>
-					<tr>
-						<td><img   id="yplane_on" title="Disable Y Axis Section" src="<?php echo $this->assetUrl('skins/icons/sectionY_on.png'); ?>" onclick="sectionySwitch()" style="position:absolute; visibility:hidden; border:1px inset;"/>
-							<img   id="yplane" title="Enable Y Axis Section"  src="<?php echo $this->assetUrl('skins/icons/sectionY.png'); ?>" onclick="sectionySwitch()"/><br/></td>
-						<td><input id="yplaneSlider" class="output-input"  type="range" title="Move Y Axis Section Position"/></td> 
-						<td><input id="yplaneFlip" class="output-input"  type="checkbox" title="Flip Y Axis Section Direction"/></td>
-					</tr>
-					<tr>
-						<td><img   id="zplane_on" title="Disable Z Axis Section" src="<?php echo $this->assetUrl('skins/icons/sectionZ_on.png'); ?>" onclick="sectionzSwitch()" style="position:absolute; visibility:hidden; border:1px inset;"/>
-							<img   id="zplane" title="Enable Z Axis Section"  src="<?php echo $this->assetUrl('skins/icons/sectionZ.png'); ?>" onclick="sectionzSwitch()"/><br/></td>
-						<td><input id="zplaneSlider" class="output-input"  type="range" title="Move Y Axis Section Position"/></td> 
-						<td><input id="zplaneFlip" class="output-input" type="checkbox" title="Flip Z Axis Section Direction"/></td>
-					</tr>
-				</table>
-				<table class="output-table" onmousedown="event.stopPropagation()" style="text-align:right;">
-					<tr>
-						<td>Show planes<input id="showPlane" class="output-input" type="checkbox" title="Show Section Planes"/></td>
-						<td>Show edges<input  id="showBorder" class="output-input" type="checkbox" title="Show Section Edges"/></td>
-					</tr>
-				</table>
-			</div>
-			<div id="measure-box" class="output-box">Measured length<hr/><span id="measure-output" class="output-text" onmousedown="event.stopPropagation()">0.0</span></div> 
-			<div id="pickpoint-box" class="output-box">Coordinates <?php if ($srs = $item->value('air:spatial_reference_system')): echo "(".$srs.")"; endif; ?><hr/><span id="pickpoint-output" class="output-text" onmousedown="event.stopPropagation()">[ 0 , 0 , 0 ]</span></div>
-			<div class="infoPosition" id="infoPositionContainer">
-				<div id="infoPosition"><b>Trackball position</b></div>
+			<div id="output-boxes-container">
+				<!-- Fenêtre : Sections -->
+				<div id="sections-box" class="output-box">
+					<table class="output-table" onmousedown="event.stopPropagation()">
+						<tr><td>Plane</td><td>Position</td><td>Flip</td></tr>
+						<tr>
+							<td>
+								<img id="xplane_on" src="<?= $this->assetUrl('skins/icons/sectionX_on.png'); ?>" title="Disable X Section" onclick="sectionxSwitch()" style="position:absolute; visibility:hidden;" />
+								<img id="xplane" src="<?= $this->assetUrl('skins/icons/sectionX.png'); ?>" title="Enable X Section" onclick="sectionxSwitch()" />
+							</td>
+							<td>
+								<input id="xplaneSlider" class="output-input" type="range" min="-1" max="1" step="0.01" title="Move X Position" />
+							</td>
+							<td>
+								<input id="xplaneFlip" class="output-input" type="checkbox" title="Flip X Direction" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<img id="yplane_on" src="<?= $this->assetUrl('skins/icons/sectionY_on.png'); ?>" title="Disable Y Section" onclick="sectionySwitch()" style="position:absolute; visibility:hidden;" />
+								<img id="yplane" src="<?= $this->assetUrl('skins/icons/sectionY.png'); ?>" title="Enable Y Section" onclick="sectionySwitch()" />
+							</td>
+							<td>
+								<input id="yplaneSlider" class="output-input" type="range" min="-1" max="1" step="0.01" title="Move Y Position" />
+							</td>
+							<td>
+								<input id="yplaneFlip" class="output-input" type="checkbox" title="Flip Y Direction" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<img id="zplane_on" src="<?= $this->assetUrl('skins/icons/sectionZ_on.png'); ?>" title="Disable Z Section" onclick="sectionzSwitch()" style="position:absolute; visibility:hidden;" />
+								<img id="zplane" src="<?= $this->assetUrl('skins/icons/sectionZ.png'); ?>" title="Enable Z Section" onclick="sectionzSwitch()" />
+							</td>
+							<td>
+								<input id="zplaneSlider" class="output-input" type="range" min="-1" max="1" step="0.01" title="Move Z Position" />
+							</td>
+							<td>
+								<input id="zplaneFlip" class="output-input" type="checkbox" title="Flip Z Direction" />
+							</td>
+						</tr>
+					</table>
+					<table class="output-table" onmousedown="event.stopPropagation()" style="text-align:right;">
+						<tr>
+							<td>
+								Show planes <input id="showPlane" class="output-input" type="checkbox" onchange="presenter.showSectionPlanes(this.checked)" />
+							</td>
+							<td>
+								Show edges <input id="showBorder" class="output-input" type="checkbox" onchange="presenter.showSectionBorders(this.checked)" />
+							</td>
+						</tr>
+					</table>
+				</div>
+
+				<!-- Fenêtre : Mesure -->
+				<div id="measure-box" class="output-box">
+				<div class="output-header">Measured length</div>
+				<hr />
+				<div id="measure-output" class="output-text">0.0</div>
+				</div>
+
+				<!-- Fenêtre : Pickpoint -->
+				<div id="pickpoint-box" class="output-box">
+				<div class="output-header">
+					Coordinates <?= $srs = $item->value('air:spatial_reference_system') ? "({$srs})" : '' ?>
+				</div>
+				<hr />
+				<div id="pickpoint-output" class="output-text">[ 0 , 0 , 0 ]</div>
+				</div>
+
+				<!-- Fenêtre : Position de la caméra -->
+				<div id="infoPositionContainer" class="output-box">
+				<div class="output-header">Trackball position</div>
+				<hr />
 				<div id="hiddenPosition" style="display:none"></div>
-				<div id="closePosition" onclick="$('#infoPositionContainer').hide();"><i class="fas fa-times"></i></div>
-				<div id="copyPosition" onclick="copyToClipboard('#hiddenPosition');"><i class="far fa-clipboard"></i></div>
+				<div class="output-actions">
+					<button id="copyPosition" onclick="copyToClipboard('#hiddenPosition')" title="Copy">
+					<i class="far fa-clipboard"></i>
+					</button>
+					<button id="closePosition" onclick="$('#infoPositionContainer').hide()" title="Close">
+					<i class="fas fa-times"></i>
+					</button>
+				</div>
+				</div>
+
 			</div>
-			<div class="toggleLegend" id="toggleLegend" title="Show the layers" onclick="toggleLegend()"><i class="fas fa-bars"></i></div>
+			
+
+			<div class="toggleLegend tool-btn" id="toggleLegend" title="Show the layers" onclick="toggleLegend()"><i class="fas fa-bars"></i></div>
 			<div class="layerHopList">
 				<div class="legend">Layers:</div>
 					<div class="bubble checkAll">
@@ -198,6 +283,10 @@ endif;
 
 <script type="text/javascript">
 
+function toggleToolbar() {
+    document.getElementById("toggled-toolbar").classList.toggle("hidden");
+}
+
 function openTabs(evt, tabName) {
   var i, x, tablinks;
   x = document.getElementsByClassName("tab");
@@ -216,6 +305,7 @@ function openTabs(evt, tabName) {
 }
 
 </script>
+
 <script type="text/javascript">
 
 <?php if (array_intersect($mediaExtent, $tdExt)): ?>
@@ -229,22 +319,84 @@ function setup3dhop() {
 	presenter._onEndMeasurement = onEndMeasure;
     presenter._onEndPickingPoint = onEndPick;
 }
+
+let isMeasurementActive = false;
+let isPickpointActive = false;
+isSectionActive = false;
+let currentColorMode = 2; // 1 = plein, 2 = transparent, 3 = couleur unie
+
 function actionsToolbar(action) {
-	if(action=='home') presenter.resetTrackball(); 
-	else if(action=='zoomin') presenter.zoomIn();
-	else if(action=='zoomout') presenter.zoomOut(); 
-	else if(action=='light' || action=='light_on') { presenter.enableLightTrackball(!presenter.isLightTrackballEnabled()); lightSwitch(); } 
-	else if(action=='lighting' || action=='lighting_off') { presenter.enableSceneLighting(!presenter.isSceneLightingEnabled()); lightingSwitch(); }
-	else if(action=='color_on') { colorSwitch(1); }
-    else if(action=='color_off') { colorSwitch(2); }
-    else if(action=='color_tr') { colorSwitch(3); }
-	else if(action=='perspective' || action=='orthographic') { presenter.toggleCameraType(); cameraSwitch(); }
-	else if(action=='measure' || action=='measure_on') { presenter.enableMeasurementTool(!presenter.isMeasurementToolEnabled()); measureSwitch(); } 
-	else if(action=='pick' || action=='pick_on') { presenter.enablePickpointMode(!presenter.isPickpointModeEnabled()); pickpointSwitch(); } 
-	else if(action=='sections' || action=='sections_on') { sectiontoolReset(); sectiontoolSwitch(); } 
-	else if(action=='screenshot') presenter.saveScreenshot();
-	else if(action=='full'  || action=='full_on') fullscreenSwitch(); 
+    switch(action) {
+        case 'home':
+            presenter.resetTrackball();
+            break;
+        case 'zoomin':
+            presenter.zoomIn();
+            break;
+        case 'zoomout':
+            presenter.zoomOut();
+            break;
+		case 'light':
+			const isLightOn = !presenter.isLightTrackballEnabled();
+			presenter.enableLightTrackball(isLightOn);
+			const $lightIcon = $('button[data-action="light"] i');
+			if (isLightOn) {
+				$lightIcon.removeClass('fa-regular').addClass('fas'); // lumière activée = ampoule pleine
+				$lightIcon.css("color","yellow");
+			} else {
+				$lightIcon.removeClass('fas').addClass('fa-regular'); // lumière désactivée = ampoule vide
+				$lightIcon.css("color","white");
+			}
+			break;
+		case 'lighting':
+			const isLightingOn = !presenter.isSceneLightingEnabled();
+			presenter.enableSceneLighting(isLightingOn);
+			const $lightingIcon = $('button[data-action="lighting"] i');
+			if (isLightingOn) {
+				$lightingIcon.removeClass('fa-regular').addClass('fa-solid');
+			} else {
+				$lightingIcon.removeClass('fa-solid').addClass('fa-regular');
+			}
+			break;
+        case 'color1':
+            colorSwitch(1); break;
+        case 'color2':
+            colorSwitch(2); break;
+        case 'color3':
+            colorSwitch(3); break;
+		case 'perspective':
+			presenter.toggleCameraType();
+			cameraSwitch(); // ta fonction existante
+			toggleCameraIcon(); // ✅ nouvelle fonction à appeler
+			break;
+        case 'measure':
+            isMeasurementActive = !isMeasurementActive;
+            presenter.enableMeasurementTool(isMeasurementActive);
+            document.getElementById('measure-box').style.display = isMeasurementActive ? "block" : "none";
+            toggleButtonActive('measure');
+            break;
+        case 'pick':
+            isPickpointActive = !isPickpointActive;
+            presenter.enablePickpointMode(isPickpointActive);
+            document.getElementById('pickpoint-box').style.display = isPickpointActive ? "block" : "none";
+            toggleButtonActive('pick');
+            break;
+        case 'sections':
+            isSectionActive = !isSectionActive;
+            sectiontoolReset();
+            sectiontoolSwitch();
+            document.getElementById('sections-box').style.display = isSectionActive ? "block" : "none";
+            toggleButtonActive('sections');
+            break;
+        case 'screenshot':
+            presenter.saveScreenshot();
+            break;
+		case 'full':
+			fullscreenSwitch();
+			break;
+    }
 }
+
 function onEndMeasure(measure) {
 	// measure.toFixed(2) sets the number of decimals when displaying the measure
 	// depending on the model measure units, use "mm","m","km" or whatever you have
@@ -263,29 +415,87 @@ function colorSwitch(mode){
     
     if(mode == 1)
     {
-        $('#color_on').css("visibility", "hidden");
-        $('#color_off').css("visibility", "visible");
-        $('#color_tr').css("visibility", "hidden");
+        $('#color_on').css("display", "none");
+        $('#color_off').css("display", "block");
+        $('#color_tr').css("display", "none");
         presenter.setInstanceTransparencyByName(HOP_ALL,false,true);   
         presenter.setInstanceSolidColorByName(HOP_ALL,false,true);       
     }
     else if(mode == 2)
     {
-        $('#color_on').css("visibility", "hidden");
-        $('#color_off').css("visibility", "hidden");
-        $('#color_tr').css("visibility", "visible");
+        $('#color_on').css("display", "none");
+        $('#color_off').css("display", "none");
+        $('#color_tr').css("display", "block");
         presenter.setInstanceTransparencyByName(HOP_ALL,true,true);   
         presenter.setInstanceSolidColorByName(HOP_ALL,false,true);   
     }
     else if(mode == 3)
     {
-        $('#color_on').css("visibility", "visible");
-        $('#color_off').css("visibility", "hidden");
-        $('#color_tr').css("visibility", "hidden");
+        $('#color_on').css("display", "block");
+        $('#color_off').css("display", "none");
+        $('#color_tr').css("display", "none");
         presenter.setInstanceTransparencyByName(HOP_ALL,false,true);   
         presenter.setInstanceSolidColorByName(HOP_ALL,true,true);   
     }
 }
+
+function toggleButtonActive(action) {
+    const btn = document.querySelector(`[data-action="${action}"]`);
+    if (btn) {
+        btn.classList.toggle("active-tool");
+    }
+}
+
+function toggleLightIcon() {
+    const $icon = $('button#toggleLight[data-action="light"] i');
+    if ($icon.hasClass('fas')) {
+        $icon.removeClass('fas').addClass('fa-regular');
+    } else {
+        $icon.removeClass('fa-regular').addClass('fas');
+    }
+}
+
+function fullscreenSwitch() {
+    const container = document.getElementById("3dhop");
+
+    if (!document.fullscreenElement) {
+        if (container.requestFullscreen) {
+            container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+            container.webkitRequestFullscreen();
+        } else if (container.mozRequestFullScreen) {
+            container.mozRequestFullScreen();
+        } else if (container.msRequestFullscreen) {
+            container.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+function toggleCameraIcon() {
+  const persp = document.getElementById('camera-icon-persp');
+  const ortho = document.getElementById('camera-icon-ortho');
+
+  const isPerspective = presenter.getCameraType() === "perspective";
+
+  persp.style.display = isPerspective ? "inline-block" : "none";
+  ortho.style.display = isPerspective ? "none" : "inline-block";
+}
+
+
+
+document.addEventListener("fullscreenchange", () => {
+    const $icon = $('button[data-action="full"] i');
+    if (document.fullscreenElement) {
+        $icon.removeClass('fa-expand').addClass('fa-compress');
+    } else {
+        $icon.removeClass('fa-compress').addClass('fa-expand');
+    }
+});
+
 
 <?php endif; ?>
 
@@ -307,7 +517,75 @@ $(document).ready(function(){
     sectiontoolInit();
 	modifyScene0();
 <?php endif; ?>
+	if (!presenter.isSceneLightingEnabled()) {
+        $('button[data-action="lighting"] i').removeClass('fas').addClass('fa-regular');
+    }
+    if (!presenter.isLightTrackballEnabled()) {
+        $('button[data-action="light"] i').removeClass('fas').addClass('fa-regular');
+    }
 });
+</script>
+
+<script>
+let isSectionActive = false;
+
+function toggleSections() {
+	isSectionActive = !isSectionActive;
+	sectiontoolReset(); // reset all planes
+	sectiontoolSwitch(); // toggle clipping tool
+	document.getElementById('sections-box').style.display = isSectionActive ? 'block' : 'none';
+	toggleButtonActive('sections');
+
+	if (isSectionActive) {
+		['x', 'y', 'z'].forEach(updateSection);
+
+		// 🔓 Afficher les icônes
+		['xplane', 'yplane', 'zplane'].forEach(id => {
+			const el = document.getElementById(id);
+			if (el) el.style.visibility = 'visible';
+		});
+	} else {
+		// 🔒 Optionnel : les cacher à la désactivation
+		['xplane', 'yplane', 'zplane'].forEach(id => {
+			const el = document.getElementById(id);
+			if (el) el.style.visibility = 'hidden';
+		});
+	}
+}
+
+function updateSection(axis) {
+  if (!isSectionActive) return;
+
+  const axisMap = { x: 0, y: 1, z: 2 };
+  const i = axisMap[axis];
+
+  const slider = document.getElementById(`${axis}planeSlider`);
+  const flip = document.getElementById(`${axis}planeFlip`);
+
+  if (!slider || !flip) return;
+
+  const val = parseFloat(slider.value);
+  const direction = [0, 0, 0];
+  const origin = [0, 0, 0];
+
+  direction[i] = flip.checked ? -1 : 1;
+  origin[i] = val;
+
+  presenter.setClippingPlane(i, direction, origin);
+}
+
+function toggleAxisSection(axis) {
+  const axisMap = { x: 0, y: 1, z: 2 };
+  const i = axisMap[axis];
+
+  const enabled = !presenter.isSectionToolEnabled(i);
+  presenter.enableSectionTool(i, enabled);
+
+  document.getElementById(`${axis}plane`).style.display = enabled ? 'none' : 'inline';
+  document.getElementById(`${axis}plane_on`).style.display = enabled ? 'inline' : 'none';
+
+  updateSection(axis);
+}
 </script>
 
 <?php if (array_intersect($mediaExtent, $tdExt)): ?>
