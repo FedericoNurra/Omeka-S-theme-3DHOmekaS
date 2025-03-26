@@ -8,3 +8,6 @@ If you connect two items through the "dcterms:hasPart" properties, the associate
 
 ## Note:
 On the /admin/setting of your Omeka S installation, remember to check "Disable file validation" to allow ply, nxs , nxz, geojson files upload as item medias, or add "ply, nxs , nxz" to the validation format array.
+
+## Demo:
+[A Gargoyle in a Cage](https://air.ht.lu.se/s/3dhop/item/13031)
