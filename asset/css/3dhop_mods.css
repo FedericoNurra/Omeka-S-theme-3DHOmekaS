@@ -7,7 +7,6 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 14px;
     padding: 10px;
     z-index: 9999;
@@ -48,8 +47,8 @@
 }
 
 .tool-btn.active-tool {
-    background-color: rgba(0, 200, 255, 0.3);
-    box-shadow: 0 0 4px rgba(0, 200, 255, 0.6);
+    background-color: rgba(139, 0, 0, 0.7);
+    box-shadow: 0 0 4px rgba(139, 0, 0, 0.6);
 }
 
 /* === Bouton de toggle === */
@@ -252,7 +251,7 @@
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: linear-gradient(to right, #007bff, #00d4ff);
+    background: linear-gradient(to right, darkred, #491010);
     outline: none;
     -webkit-appearance: none;
   }
@@ -265,12 +264,12 @@
     background: #fff;
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid #007bff;
+    border: 2px solid darkred;
   }
   
   #sections-box input[type="checkbox"] {
     transform: scale(1.2);
-    accent-color: #00bfff;
+    accent-color: darkred;
     margin-left: 6px;
   }
   

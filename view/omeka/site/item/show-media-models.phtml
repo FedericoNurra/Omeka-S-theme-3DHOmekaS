@@ -285,6 +285,8 @@ endif;
 
 function toggleToolbar() {
     document.getElementById("toggled-toolbar").classList.toggle("hidden");
+	$("#toggleToolbar").toggleClass("active-tool");
+
 }
 
 function openTabs(evt, tabName) {
@@ -776,6 +778,7 @@ function disableInfo() {
 
 function toggleLegend() {
 	jQuery(".layerHopList").toggle();
+	$("#toggleLegend").toggleClass("active-tool");
 }
 
 function resetTrackball() {
