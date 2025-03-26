@@ -2530,11 +2530,11 @@ div#scaleArrow:hover {
 }
 .bubble {
     display: inline;
-    line-height: 2;
-    font-size: 12px;
+    line-height: 4;
+    font-size: 14px;
     color: white;
     background-color: darkblue;
-    padding: 5px;
+    padding: 10px !important;
 }
 .bubble.original {
     font-weight: bold;

@@ -57,59 +57,58 @@ endif;
 	<div id=3dhopParent>
 	<?php if (array_intersect($mediaExtent, $tdExt)): ?> 
 		<div id="3dhop" class="tdhop tab" onmousedown="if (event.preventDefault) event.preventDefault()">
-			<!-- Toolbar personnalisée -->
 			<div id="custom-toolbar">
-				<button class="tool-btn" id="toggleToolbar" onclick="toggleToolbar()"><i class="fa-solid fa-toolbox"></i></button>
+				<button class="tool-btn" id="toggleToolbar" onclick="toggleToolbar()"><i class="fa-solid fa-toolbox" title="Toolbar"></i></button>
 				<div id="toggled-toolbar" class="hidden">
-					<!-- Vue initiale -->
-					<button class="tool-btn" data-action="home" onclick="actionsToolbar('home')" title="Vue initiale">
+					<!-- Home -->
+					<button class="tool-btn" data-action="home" onclick="actionsToolbar('home')" title="Home">
 						<i class="fas fa-home"></i>
 					</button>
 					<!-- Zoom -->
-					<button class="tool-btn" data-action="zoomin" onclick="actionsToolbar('zoomin')" title="Zoom avant">
+					<button class="tool-btn" data-action="zoomin" onclick="actionsToolbar('zoomin')" title="Zoom in">
 						<i class="fas fa-search-plus"></i>
 					</button>
-					<button class="tool-btn" data-action="zoomout" onclick="actionsToolbar('zoomout')" title="Zoom arrière">
+					<button class="tool-btn" data-action="zoomout" onclick="actionsToolbar('zoomout')" title="Zoom out">
 						<i class="fas fa-search-minus"></i>
 					</button>
-					<!-- Contrôle de lumière -->
-					<button class="tool-btn" data-action="light" onclick="actionsToolbar('light')" title="Contrôle de la lumière">
+					<!-- Light control -->
+					<button class="tool-btn" data-action="light" onclick="actionsToolbar('light')" title="Light control">
 						<i class="fa-regular fa-lightbulb"></i> <!-- état initial = désactivé -->
 					</button>
-					<!-- Éclairage -->
-					<button class="tool-btn" data-action="lighting" onclick="actionsToolbar('lighting')" title="Activer/Désactiver l’éclairage">
+					<!-- Lightning -->
+					<button class="tool-btn" data-action="lighting" onclick="actionsToolbar('lighting')" title="Toggle Lightning">
 						<i class="fa-solid fa-sun"></i>
 					</button>
-					<!-- Modes couleur -->
-					<button id="color_on" style="display:none;" class="tool-btn color-btn" data-color="1" onclick="actionsToolbar('color1')" title="Mode couleur plein">
+					<!-- Color -->
+					<button id="color_on" style="display:none;" class="tool-btn color-btn" data-color="1" onclick="actionsToolbar('color1')" title="Textures">
 						<i class="fas fa-brush"></i>					
 					</button>
-					<button id="color_off" class="tool-btn color-btn" data-color="2" onclick="actionsToolbar('color2')" title="Mode transparent">
+					<button id="color_off" class="tool-btn color-btn" data-color="2" onclick="actionsToolbar('color2')" title="Transparent">
 						<i class="fa-solid fa-palette"></i>
 					</button>
-					<button id="color_tr" style="display:none;" class="tool-btn color-btn" data-color="3" onclick="actionsToolbar('color3')" title="Couleur unie">
+					<button id="color_tr" style="display:none;" class="tool-btn color-btn" data-color="3" onclick="actionsToolbar('color3')" title="No color">
 						<i class="fa-solid fa-droplet-slash"></i>
 					</button>
-					<!-- Caméra -->
-					<button id="perspective-btn" class="tool-btn" data-action="perspective" onclick="actionsToolbar('perspective')" title="Changer le type de caméra">
+					<!-- Camera -->
+					<button id="perspective-btn" class="tool-btn" data-action="perspective" onclick="actionsToolbar('perspective')" title="Change camera type">
 						<i id="camera-icon-persp" class="fas fa-cube"></i>
 						<i id="camera-icon-ortho" class="fa-regular fa-square" style="display:none;"></i>
 					</button>
-					<!-- Outils -->
-					<button class="tool-btn" data-action="measure" onclick="actionsToolbar('measure')" title="Outil de mesure">
+					<!-- Tools -->
+					<button class="tool-btn" data-action="measure" onclick="actionsToolbar('measure')" title="Measure Tool">
 						<i class="fas fa-ruler"></i>
 					</button>
-					<button class="tool-btn" data-action="pick" onclick="actionsToolbar('pick')" title="Coordonnées (PickPoint)">
+					<button class="tool-btn" data-action="pick" onclick="actionsToolbar('pick')" title="Coordinates (PickPoint)">
 						<i class="fas fa-crosshairs"></i>
 					</button>
-					<button class="tool-btn" data-action="sections" onclick="toggleSections()" title="Sections planes">
+					<button class="tool-btn" data-action="sections" onclick="toggleSections()" title="Sections Planes">
 						<i class="fas fa-layer-group"></i>
 					</button>
-					<!-- Capture & plein écran -->
-					<button class="tool-btn" data-action="screenshot" onclick="actionsToolbar('screenshot')" title="Capture d’écran">
+					<!-- Screenshot -->
+					<button class="tool-btn" data-action="screenshot" onclick="actionsToolbar('screenshot')" title="Screenshot">
 						<i class="fas fa-camera"></i>
 					</button>
-					<button class="tool-btn" data-action="full" onclick="actionsToolbar('full')" title="Plein écran">
+					<button class="tool-btn" data-action="full" onclick="actionsToolbar('full')" title="Toggle Full Screen">
 						<i class="fa-solid fa-expand"></i>
 					</button>
 				</div>
@@ -168,14 +167,12 @@ endif;
 					</table>
 				</div>
 
-				<!-- Fenêtre : Mesure -->
 				<div id="measure-box" class="output-box">
 				<div class="output-header">Measured length</div>
 				<hr />
 				<div id="measure-output" class="output-text">0.0</div>
 				</div>
 
-				<!-- Fenêtre : Pickpoint -->
 				<div id="pickpoint-box" class="output-box">
 				<div class="output-header">
 					Coordinates <?= $srs = $item->value('air:spatial_reference_system') ? "({$srs})" : '' ?>
@@ -184,7 +181,6 @@ endif;
 				<div id="pickpoint-output" class="output-text">[ 0 , 0 , 0 ]</div>
 				</div>
 
-				<!-- Fenêtre : Position de la caméra -->
 				<div id="infoPositionContainer" class="output-box">
 				<div class="output-header">Trackball position</div>
 				<hr />
@@ -325,7 +321,7 @@ function setup3dhop() {
 let isMeasurementActive = false;
 let isPickpointActive = false;
 isSectionActive = false;
-let currentColorMode = 2; // 1 = plein, 2 = transparent, 3 = couleur unie
+let currentColorMode = 2;
 
 function actionsToolbar(action) {
     switch(action) {
@@ -343,10 +339,10 @@ function actionsToolbar(action) {
 			presenter.enableLightTrackball(isLightOn);
 			const $lightIcon = $('button[data-action="light"] i');
 			if (isLightOn) {
-				$lightIcon.removeClass('fa-regular').addClass('fas'); // lumière activée = ampoule pleine
+				$lightIcon.removeClass('fa-regular').addClass('fas');
 				$lightIcon.css("color","yellow");
 			} else {
-				$lightIcon.removeClass('fas').addClass('fa-regular'); // lumière désactivée = ampoule vide
+				$lightIcon.removeClass('fas').addClass('fa-regular');
 				$lightIcon.css("color","white");
 			}
 			break;
@@ -368,8 +364,8 @@ function actionsToolbar(action) {
             colorSwitch(3); break;
 		case 'perspective':
 			presenter.toggleCameraType();
-			cameraSwitch(); // ta fonction existante
-			toggleCameraIcon(); // ✅ nouvelle fonction à appeler
+			cameraSwitch();
+			toggleCameraIcon();
 			break;
         case 'measure':
             isMeasurementActive = !isMeasurementActive;
@@ -400,13 +396,10 @@ function actionsToolbar(action) {
 }
 
 function onEndMeasure(measure) {
-	// measure.toFixed(2) sets the number of decimals when displaying the measure
-	// depending on the model measure units, use "mm","m","km" or whatever you have
 	$('#measure-output').html(measure.toFixed(2));
 }
 
 function onEndPick(point) {
-	// point.toFixed(2) sets the number of decimals when displaying the picked point
 	var x = point[0].toFixed(2);
 	var y = point[2].toFixed(2);
 	var z = point[1].toFixed(2);
@@ -533,21 +526,18 @@ let isSectionActive = false;
 
 function toggleSections() {
 	isSectionActive = !isSectionActive;
-	sectiontoolReset(); // reset all planes
-	sectiontoolSwitch(); // toggle clipping tool
+	sectiontoolReset(); 
+	sectiontoolSwitch();
 	document.getElementById('sections-box').style.display = isSectionActive ? 'block' : 'none';
 	toggleButtonActive('sections');
 
 	if (isSectionActive) {
 		['x', 'y', 'z'].forEach(updateSection);
-
-		// 🔓 Afficher les icônes
 		['xplane', 'yplane', 'zplane'].forEach(id => {
 			const el = document.getElementById(id);
 			if (el) el.style.visibility = 'visible';
 		});
 	} else {
-		// 🔒 Optionnel : les cacher à la désactivation
 		['xplane', 'yplane', 'zplane'].forEach(id => {
 			const el = document.getElementById(id);
 			if (el) el.style.visibility = 'hidden';
