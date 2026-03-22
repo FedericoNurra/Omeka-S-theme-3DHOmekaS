@@ -37,7 +37,8 @@ html::-webkit-scrollbar-thumb
 	border-radius: 5px;
 }
 body {
-  margin: 0
+  margin: 0;
+  overflow: auto;
 }
 article,
 aside,
@@ -822,7 +823,6 @@ a {
     margin-bottom: 24px;
     display: flex;
     flex-wrap: wrap;
-/*    align-items: center */
   }
   .testCopyright {
     font-size: 12px;
@@ -851,15 +851,12 @@ a {
   }
   .property {
     display: flex;
-/*    margin-bottom: 10px; */
     flex-wrap: wrap;
     justify-content: flex-start;
     clear: both;
-/*    margin-top: 10px */
   }
   .property h4,
   #linked-resources h4 {
-/*    width: 30%; */
     margin: 0;
     text-align: right;
     padding: 0;
@@ -876,9 +873,6 @@ a {
   div .value .tag {
     width: 81.25%;
     padding: 0 .625%
-  }
-  .property .values .value:not(:last-child) {
-/*    margin-bottom: 12px */
   }
   .property .value>*:first-child {
     margin-top: 0
@@ -1883,8 +1877,8 @@ input {
   }
   .lSSlideOuter .media-render img {
     max-height: 100%;
-    width: 100% !important
-	object-fit: contain;
+    width: 100% !important;
+	  object-fit: contain;
   }
   #reference-headings {
     column-count: 3;
@@ -2021,15 +2015,8 @@ div.reference-tree #reference-headings {
     display: block;
     outline: 0;
 }
-    margin-bottom: 10px;
-legend {
+.legend {
     color: white !important;
-}
-button {
-/*    box-shadow: 5px 5px 10px 0 rgba(100, 100, 50, 0.1); */
-}
-button:hover {
-/*    box-shadow: 5px 5px 10px 0 rgba(100, 100, 50, 0.2); */
 }
 .allValues .property {
     margin-bottom: 20px;
@@ -2368,7 +2355,7 @@ div#getView:hover {
     scrollbar-width: thin;
     scrollbar-color: black #666;
     margin-top: 20px;
-    width: 30%;
+    width: auto;
     border-radius: 5px;
 }
 .layerHopList::-webkit-scrollbar-track
@@ -2869,8 +2856,6 @@ input#checkAll {
     width: 80%;
 }
 }
-
-/* Slideshow container */
 .slideshow-container {
   max-width: 800px;
   position: relative;
@@ -2878,13 +2863,9 @@ input#checkAll {
   box-shadow: 5px 5px 10px 0 rgba(100, 100, 50, 0.1);
   max-height: 100%;
 }
-
-/* Hide the images by default */
 .mySlides {
   display: none;
 }
-
-/* Next & previous buttons */
 .slideshow-container .prev, .slideshow-container .next {
   cursor: pointer;
   position: absolute;
@@ -2898,20 +2879,17 @@ input#checkAll {
   transition: 0.6s ease;
   border-radius: 0 3px 3px 0;
   user-select: none;
+  background-color: darkred;
+  opacity: 0.4;
 }
-
-/* Position the "next button" to the right */
 .slideshow-container .next {
   right: 0;
   border-radius: 3px 0 0 3px;
 }
-
-/* On hover, add a black background color with a little bit see-through */
 .prev:hover, .next:hover {
-  background-color: rgba(0,0,0,0.8);
+  background-color: darkred;
+  opacity: 1;
 }
-
-/* Caption text */
 .text {
   color: #f2f2f2;
   font-size: 15px;
@@ -2922,8 +2900,6 @@ input#checkAll {
   text-align: center;
   background-color: rgba(0, 0, 0, 0.3);
 }
-
-/* Number text (1/3 etc) */
 .numbertext {
   color: #f2f2f2;
   font-size: 12px;
@@ -2932,8 +2908,6 @@ input#checkAll {
   top: 0;
   background-color: rgba(0, 0, 0, 0.3);
 }
-
-/* The dots/bullets/indicators */
 .dot {
   cursor: pointer;
   height: 15px;
@@ -2948,20 +2922,16 @@ input#checkAll {
 .mediaContainer .active, .dot:hover {
   background-color: #717171;
 }
-
-/* Fading animation */
 .fade {
   -webkit-animation-name: fade;
   -webkit-animation-duration: 1.5s;
   animation-name: fade;
   animation-duration: 1.5s;
 }
-
 @-webkit-keyframes fade {
   from {opacity: .4}
   to {opacity: 1}
 }
-
 @keyframes fade {
   from {opacity: .4}
   to {opacity: 1}
@@ -3465,3 +3435,121 @@ h3 {
   margin: 5%;
   box-shadow: 5px 5px 10px 0 rgba(100, 100, 50, 0.1);
 }
+html, body, #cesiumContainer {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#cesiumData {
+  height: 100%;
+}
+  .cesium-wrapper {
+    position: relative;
+    height: 100%;
+  }
+
+  #cesiumLegend {
+    position: absolute;
+    top: 10px;
+    left: 7px;
+    z-index: 20;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+#cesiumLegend .legend-toggle {
+  border: 0;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  background: rgba(30, 30, 30, 0.95);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+}
+
+  #cesiumLegend .legend-toggle:hover {
+    opacity: 0.95;
+  }
+
+  #cesiumLegend .legend-panel {
+    margin-top: 8px;
+    background: rgba(30, 30, 30, 0.9);
+    padding: 12px 14px;
+    border-radius: 8px;
+    min-width: 240px;
+    max-width: 320px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+    max-height: 400px;
+    overflow: auto;
+}
+
+  #cesiumLegend.is-collapsed .legend-panel {
+    display: none;
+  }
+
+  #cesiumLegend h3 {
+    margin: 0 0 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: darkred;
+  }
+
+  #cesiumLegend .legend-group {
+    margin-bottom: 12px;
+  }
+
+  #cesiumLegend .legend-group:last-child {
+    margin-bottom: 0;
+  }
+
+  #cesiumLegend .legend-group-title {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  #cesiumLegend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+  }
+
+  #cesiumLegend input[type="checkbox"] {
+    margin: 0;
+  }
+
+  #cesiumLegend label {
+    cursor: pointer;
+    word-break: break-word;
+  }
+
+  #cesiumLegend .legend-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  #cesiumLegend .legend-actions button {
+    border: 0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    background: #f0f0f0;
+    color: #222;
+  }
+
+  #cesiumLegend .legend-empty {
+    opacity: 0.85;
+  }

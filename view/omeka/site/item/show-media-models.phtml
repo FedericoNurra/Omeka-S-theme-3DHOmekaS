@@ -1,38 +1,186 @@
 <?php
+/**
+ * @param \Omeka\Api\Representation\ItemRepresentation $item
+ * @param array       $collectedMedia   (output) array di MediaRepresentation
+ * @param array|null  $extensionsFilter es. ['nxz','ply','nxs'] o null per tutti
+ * @param array       $visited          per evitare loop
+ */
+function collectHasPartMedia($item, array &$collectedMedia, array $extensionsFilter = null, array &$visited = [])
+{
+    $id = $item->id();
+    if (isset($visited[$id])) {
+        return;
+    }
+    $visited[$id] = true;
+    $parts = $item->value('dcterms:hasPart', ['all' => true]);
+    if (!$parts) {
+        return;
+    }
+    foreach ($parts as $partValue) {
+        $child = $partValue->valueResource();
+        if (!$child) {
+            continue;
+        }
+        foreach ($child->media() as $media) {
+            if ($extensionsFilter === null || in_array($media->extension(), $extensionsFilter, true)) {
+                $collectedMedia[] = $media;
+            }
+        }
+        collectHasPartMedia($child, $collectedMedia, $extensionsFilter, $visited);
+    }
+}
+$tdExt = ["nxz", "ply", "nxs"];
+$base3DMedia = [];
+foreach ($item->media() as $media) {
+    if (in_array($media->extension(), $tdExt, true)) {
+        $base3DMedia[] = $media;
+    }
+}
+$linked3DMedia = [];
+$visited = [];
+collectHasPartMedia($item, $linked3DMedia, $tdExt, $visited);
+$base3DIds = [];
+foreach ($base3DMedia as $m) {
+    $base3DIds[$m->id()] = true;
+}
 
 $mediaExtent = [];
-$lightMedia = [];
-$otherMedia = [];
+$lightMedia  = [];
+$otherMedia  = [];
+
 foreach ($item->media() as $media) {
-	array_push($mediaExtent, $media->mediaType());
-	array_push($mediaExtent, $media->renderer());
-	array_push($mediaExtent, $media->extension());
-    $mediaType = $media->mediaType();
-    $mediaRenderer = $media->renderer();
-	$mediaRenderer = $media->renderer();
-	if ($mediaType !== null && strpos($mediaType, 'image/') !== false) {
-		$lightMedia[] = $media;
-	} else {
-		$otherMedia[] = $media;
-	}
+    $type     = $media->mediaType();
+    $renderer = $media->renderer();
+    $ext      = $media->extension();
+
+    $mediaExtent[] = $type;
+    $mediaExtent[] = $renderer;
+    $mediaExtent[] = $ext;
+
+    if ($type !== null && strpos($type, 'image/') === 0) {
+        $lightMedia[] = $media;
+    } else {
+        $otherMedia[] = $media;
+    }
 }
+
 $tdExt = array('ply', 'nxs', 'nxz');
 $imgExt = array('image/jpeg', 'image/png');
-$gisExt = array("geojson", "kml");
+$gisExt = array("geojson");
+$cesiumExt = array("geojson", "glb", "gltf");
 $ytExt = array("youtube");
 $videoExt = array("mp4", "ogv", "webm");
 $audioExt = array("mp3");
 $pdfExt = array("pdf");
 
-if ($linkedModels = $item->value('cidoc-crm:P138i_has_representation', ['all' => true])):
-	foreach ($linkedModels as $linkedModel):
-		if ($linkedModelsModels = $linkedModel->valueResource()->media()):
-			foreach ($linkedModelsModels as $linkedModelsModel):
-				array_push($mediaExtent, $linkedModelsModel->extension());
-			endforeach;				
-		endif;
-	endforeach;
-endif;
+?>
+
+<?php
+// Estensioni considerate 3D
+$tdExt = ['nxz', 'ply', 'nxs'];
+
+/**
+ * Prefisso ASCII per l'arborescenza, in base alla profondità.
+ */
+function tree_prefix(int $depth): string
+{
+    if ($depth <= 0) {
+        return '';
+    }
+    if ($depth === 1) {
+        return '├─ ';
+    }
+
+    // dal livello 2 in poi: "│  ├─", "│    ├─", ecc.
+    $spaces = str_repeat('│ ', $depth - 1);
+    return  $spaces . '├─ ';
+}
+
+/**
+ * Renderizza la legenda dei layer 3D seguendo la gerarchia dcterms:hasPart.
+ *
+ * @param \Omeka\Api\Representation\ItemRepresentation $item
+ * @param int   $depth   livello nella gerarchia (0 = item principale)
+ * @param array $visited per evitare loop
+ * @param array $tdExt   estensioni considerate 3D
+ */
+function render3DLayerLegend(
+    \Omeka\Api\Representation\ItemRepresentation $item,
+    int $depth = 0,
+    array &$visited = [],
+    array $tdExt = ['nxz', 'ply', 'nxs']
+) {
+    $id = $item->id();
+    if (isset($visited[$id])) {
+        return;
+    }
+    $visited[$id] = true;
+
+    // classi CSS in base al livello (puoi adattarle al tuo tema)
+    $wrapperOuterClass = null;
+    $bubbleClass       = 'model';
+
+    if ($depth === 0) {
+        // root: stessa logica dei tuoi .bubble.original
+        $bubbleClass = 'original';
+    } elseif ($depth === 1) {
+        $wrapperOuterClass = 'context';
+    } else {
+        $wrapperOuterClass = 'findLegend';
+    }
+
+    // media 3D dell'item corrente
+    $mediaList = [];
+    foreach ($item->media() as $media) {
+        if (in_array($media->extension(), $tdExt, true)) {
+            $mediaList[] = $media;
+        }
+    }
+
+    foreach ($mediaList as $media) {
+        $prefix = tree_prefix($depth);
+        ?>
+        <div class="<?php echo 'layer' . $media->id(); ?>">
+            <?php if ($depth === 0): ?>
+                <div class="<?php echo $media->value('dcterms:type'); ?>">
+                    <div class="bubble <?php echo $bubbleClass; ?>">
+                        <input class="layerOK"
+                               type="checkbox"
+                               checked="checked"
+                               style="cursor:hand;"
+                               onclick="presenter.toggleInstanceVisibilityByName('Model<?php echo $media->id(); ?>', true);">
+                            <?php echo $prefix, $media->displayTitle(); ?>
+                        </input>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="<?php echo $wrapperOuterClass; ?>">
+                    <div class="bubble <?php echo $bubbleClass; ?>">
+                        <input class="layerOK"
+                               type="checkbox"
+                               checked="checked"
+                               style="cursor:hand;"
+                               onclick="presenter.toggleInstanceVisibilityByName('Model<?php echo $media->id(); ?>', true);">
+                            <?php echo $prefix, $media->displayTitle(); ?>
+                        </input>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    // ricorsione sui figli dcterms:hasPart
+    $parts = $item->value('dcterms:hasPart', ['all' => true]);
+    if ($parts) {
+        foreach ($parts as $partValue) {
+            $child = $partValue->valueResource();
+            if ($child) {
+                render3DLayerLegend($child, $depth + 1, $visited, $tdExt);
+            }
+        }
+    }
+}
 ?>
 
 <div class="testHalfImg">
@@ -41,6 +189,7 @@ endif;
 		$tabButtons = [
 			'tdExt' => ['label' => '3D Models', 'tab' => '3dhop'],
 			'gisExt' => ['label' => 'GIS Data', 'tab' => 'gisData'],
+			'cesiumExt' => ['label' => 'Cesium', 'tab' => 'cesiumData'],
 			'imgExt' => ['label' => 'Images', 'tab' => 'mediaTab'],
 			'ytExt' => ['label' => 'YouTube', 'tab' => 'youtubeTab'],
 			'videoExt' => ['label' => 'Videos', 'tab' => 'videoTab'],
@@ -197,70 +346,40 @@ endif;
 
 			</div>
 			
+<div class="toggleLegend tool-btn" id="toggleLegend" title="Show the layers" onclick="toggleLegend()">
+    <i class="fas fa-bars"></i>
+</div>
 
-			<div class="toggleLegend tool-btn" id="toggleLegend" title="Show the layers" onclick="toggleLegend()"><i class="fas fa-bars"></i></div>
-			<div class="layerHopList">
-				<div class="legend">Layers:</div>
-					<div class="bubble checkAll">
-						<input id="checkAll" class="layerCB" type="checkbox" style="cursor:hand;" onclick="checkAllModels();">Check All</input>
-					</div>
-					<fieldset>
-					<?php foreach($otherMedia as $media): ?>
-						<?php if (in_array($media->extension(), ["nxz", "ply", "nxs"])): ?>
-							<div class="<?php echo "layer" . $media->id() . ""; ?>">
-								<div class="<?php echo $media->value('dcterms:type'); ?>">
-									<div class="bubble original">
-										<input class="layerOK" type="checkbox" checked="checked" style="cursor:hand;" onclick="presenter.toggleInstanceVisibilityByName('<?php $modelName = "Model" . $media->id() . ""; echo $modelName ?>', true);">
-										<?php echo $media->displayTitle(); ?> </input>
-									</div>
-								</div>
-							</div>
-						<?php endif; ?>
-					<?php endforeach; ?>
-					<?php if ($linkedModels = $item->value('dcterms:hasPart', ['all' => true])): ?>
-						<?php foreach($linkedModels as $linkedModel): ?>
-							<?php if ($linkedModelsMedias = $linkedModel->valueResource()->media()): ?>
-								<?php foreach($linkedModelsMedias as $linkedModelsMedia): ?>
-									<?php if (in_array($linkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
-										<div class="<?php echo "layer" . $linkedModelsMedia->id() . ""; ?>">
-											<div class="context">
-												<div class="bubble model">
-													<input class="layerOK" type="checkbox" checked="checked" style="cursor:hand;" onclick="presenter.toggleInstanceVisibilityByName('<?php $modelName = "Model" . $linkedModelsMedia->id() . ""; echo $modelName ?>', true);">
-													<?php echo $linkedModelsMedia->displayTitle(); ?> </input>
-												</div>
-											</div>
-										</div>
-									<?php endif; ?>
-								<?php endforeach; ?>
-							<?php endif; ?>
-							<?php if ($linkedLinkedModels = $linkedModel->valueResource()->value('dcterms:hasPart', ['all' => true])): ?>
-								<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
-									<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
-										<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
-											<?php if (in_array($linkedLinkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
-												<div class="<?php echo "layer" . $linkedLinkedModelsMedia->id() . ""; ?>">
-													<div class="findLegend">
-														<div class="bubble model">
-															<input class="layerOK" type="checkbox" checked="checked" style="cursor:hand;" onclick="presenter.toggleInstanceVisibilityByName('<?php $modelName = "Model" . $linkedLinkedModelsMedia->id() . ""; echo $modelName ?>', true);">
-															<?php echo $linkedLinkedModelsMedia->displayTitle(); ?> </input>
-														</div>
-													</div>
-												</div>
-											<?php endif; ?>
-										<?php endforeach; ?>
-									<?php endif; ?>
-								<?php endforeach; ?>
-							<?php endif; ?>
-						<?php endforeach; ?>
-					<?php endif; ?>
-				</fieldset>
-			</div>
-			<canvas id="draw-canvas" style="background-image: url(<?php echo $this->assetUrl('skins/backgrounds/dark.jpg'); ?>)"/>
-		</div>
-	<?php endif; ?>
+<div class="layerHopList">
+    <div class="legend">Layers:</div>
+
+    <div class="bubble checkAll">
+        <input id="checkAll"
+               class="layerCB"
+               type="checkbox"
+               style="cursor:hand;"
+               onclick="checkAllModels();">
+            Check All
+        </input>
+    </div>
+
+    <fieldset>
+        <?php
+        $visitedLegend = [];
+        render3DLayerLegend($item, 0, $visitedLegend, $tdExt);
+        ?>
+    </fieldset>
+</div>
+
+<canvas id="draw-canvas"
+        style="background-image: url(<?php echo $this->assetUrl('skins/backgrounds/dark.jpg'); ?>)"></canvas>
+</div>
+<?php endif; ?>
+
 	<?php
 	$mediaTabs = [
 		'gisExt' => ['id' => 'gisData', 'template' => 'omeka/site/item/show-media-gis.phtml'],
+		'cesiumExt' => ['id' => 'cesiumData', 'template' => 'omeka/site/item/show-media-cesium.phtml'],
 		'imgExt' => ['id' => 'mediaTab', 'template' => 'omeka/site/item/show-media-images.phtml'],
 		'ytExt' => ['id' => 'youtubeTab', 'template' => 'omeka/site/item/show-media-youtube.phtml'],
 		'pdfExt' => ['id' => 'pdfTab', 'template' => 'omeka/site/item/show-media-pdf.phtml'],
@@ -593,77 +712,54 @@ function modifyScene0() {
 	$(".infoContext").hide();
 	$(".layerHopList").hide();
 	$('#infoParagraph').html("<b>Main Model</b>");
-	presenter.setScene({
+
+<?php
+$tdExt = ["nxz", "ply", "nxs"];
+$meshMedia = [];
+if (!empty($otherMedia)) {
+    foreach ($otherMedia as $media) {
+        if (in_array($media->extension(), $tdExt, true)) {
+            $meshMedia[] = $media;
+        }
+    }
+}
+$linked3DMedia = [];
+collectHasPartMedia($item, $linked3DMedia, $tdExt);
+$seenIds = [];
+foreach ($meshMedia as $m) {
+    $seenIds[$m->id()] = true;
+}
+foreach ($linked3DMedia as $m) {
+    if (!isset($seenIds[$m->id()])) {
+        $meshMedia[] = $m;
+        $seenIds[$m->id()] = true;
+    }
+}
+function mesh_name_for_media($media) {
+    $title = trim($media->displayTitle());
+    if ($title === '') {
+        return 'Model' . $media->id();
+    }
+    return $title;
+}
+?>
+
+presenter.setScene({
 		meshes: {
-			<?php if (count($otherMedia) > 0): ?>
-            	<?php foreach($otherMedia as $media): ?>
-					<?php if (in_array($media->extension(), ["nxz", "ply", "nxs"])): ?>
-					"<?php echo $media->displayTitle(); ?>" : { url: "<?php echo $media->originalUrl(); ?>" },
-            		<?php endif; ?>
-				<?php endforeach; ?>
-            <?php endif; ?>
-			<?php if ($linkedModels = $item->value('dcterms:hasPart', ['all' => true])): ?>
-				<?php foreach($linkedModels as $linkedModel): ?>
-					<?php if ($linkedModelsMedias = $linkedModel->valueResource()->media()): ?>
-						<?php foreach($linkedModelsMedias as $linkedModelsMedia): ?>
-							<?php if (in_array($linkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
-								"<?php echo $linkedModelsMedia->displayTitle(); ?>" : { url: "<?php echo $linkedModelsMedia->originalUrl(); ?>" },
-							<?php endif; ?>
-						<?php endforeach; ?>
-					<?php endif; ?>
-					<?php if ($linkedLinkedModels = $linkedModel->valueResource()->value('dcterms:hasPart', ['all' => true])): ?>
-						<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
-							<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
-								<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
-									<?php if (in_array($linkedLinkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
-									"<?php echo $linkedLinkedModelsMedia->displayTitle(); ?>" : { url: "<?php echo $linkedLinkedModelsMedia->originalUrl(); ?>" },
-									<?php endif; ?>
-								<?php endforeach; ?>
-							<?php endif; ?>
-						<?php endforeach; ?>
-					<?php endif; ?>
-				<?php endforeach; ?>
-			<?php endif; ?>
-		},
-		modelInstances : {
-			<?php if (count($otherMedia) > 0): ?>
-            <?php foreach($otherMedia as $media): ?>
-				<?php if (in_array($media->extension(), ["nxz", "ply", "nxs"])): ?>
-			"<?php echo "Model" . $media->id() . ""; ?>" : { mesh : "<?php echo $media->displayTitle(); ?>",
-				useTransparency : false,
-					alpha : 1
-					},
-			<?php endif; ?>
+			<?php foreach ($meshMedia as $media): ?>
+			"<?php echo addslashes(mesh_name_for_media($media)); ?>" : {
+				url: "<?php echo $media->originalUrl(); ?>"
+			},
 			<?php endforeach; ?>
-            <?php endif; ?>
-			<?php if ($linkedModels = $item->value('dcterms:hasPart', ['all' => true])): ?>
-				<?php foreach ($linkedModels as $linkedModel): ?>
-					<?php if ($linkedModelsModels = $linkedModel->valueResource()->media()): ?>
-						<?php foreach ($linkedModelsModels as $linkedModelsModel): ?>
-							<?php if ($linkedModelsModel->extension() == "nxz" || $linkedModelsModel->extension() == "ply" || $linkedModelsModel->extension() == "nxs"): ?>
-								"<?php echo "Model" . $linkedModelsModel->id() . ""; ?>" : { mesh : "<?php echo $linkedModelsModel->displayTitle(); ?>",
-								useTransparency : false,
-								alpha : 1
-								},
-							<?php endif; ?>
-						<?php endforeach; ?> 
-					<?php endif; ?>
-					<?php if ($linkedLinkedModels = $linkedModel->valueResource()->value('dcterms:hasPart', ['all' => true])): ?>
-						<?php foreach($linkedLinkedModels as $linkedLinkedModel): ?>
-							<?php if ($linkedLinkedModelsMedias = $linkedLinkedModel->valueResource()->media()): ?>
-								<?php foreach($linkedLinkedModelsMedias as $linkedLinkedModelsMedia): ?>
-									<?php if (in_array($linkedLinkedModelsMedia->extension(), ["nxz", "ply", "nxs"])): ?>
-									"<?php echo "Model" . $linkedLinkedModelsMedia->id() . ""; ?>" : { mesh : "<?php echo $linkedLinkedModelsMedia->displayTitle(); ?>",
-									useTransparency : false,
-									alpha : 1
-									},
-									<?php endif; ?>
-								<?php endforeach; ?>
-							<?php endif; ?>
-						<?php endforeach; ?>
-					<?php endif; ?>
-				<?php endforeach; ?>
-			<?php endif; ?>
+		},
+		modelInstances: {
+			<?php foreach ($meshMedia as $media): ?>
+			"<?php echo 'Model' . $media->id(); ?>" : {
+				mesh: "<?php echo addslashes(mesh_name_for_media($media)); ?>",
+				useTransparency: false,
+				alpha: 1
+			},
+			<?php endforeach; ?>
 		},
 		trackball: {
 			type: <?php echo "TurntablePanTrackball"; ?>,

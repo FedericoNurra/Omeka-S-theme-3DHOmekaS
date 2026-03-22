@@ -1,0 +1,80 @@
+<?php
+$this->htmlElement('html')->setAttribute('lang', $this->lang());
+$this->headMeta()->setCharset('utf-8');
+
+$this->headLink()->appendStylesheet('https://cesium.com/downloads/cesiumjs/releases/1.139.1/Build/Cesium/Widgets/widgets.css');
+$this->headScript()->appendFile('https://cesium.com/downloads/cesiumjs/releases/1.139.1/Build/Cesium/Cesium.js');
+$this->headScript()->appendFile($this->assetUrl('js/cesium_config.js'));
+$this->headScript()->appendFile($this->assetUrl('js/cesium_app.js'));
+
+$geojsonLayers = [];
+$glbLayers = [];
+
+foreach ($item->media() as $media):
+  $ext = strtolower((string) $media->extension());
+
+  if (in_array($ext, ['geojson', 'json'])):
+    $geojsonLayers[] = [
+      'id' => $media->id(),
+      'url' => $media->originalUrl(),
+      'title' => $media->displayTitle(),
+    ];
+  endif;
+
+  if (in_array($ext, ['glb', 'gltf'])):
+
+    $lat = null;
+    $lon = null;
+
+    $spatial = $media->value('dcterms:spatial');
+
+    if ($spatial) {
+      $coords = array_map('trim', explode(',', $spatial->value()));
+
+      if (count($coords) === 2 && is_numeric($coords[0]) && is_numeric($coords[1])) {
+        $lat = (float) $coords[0];
+        $lon = (float) $coords[1];
+      }
+    }
+
+    $glbLayers[] = [
+      'id' => $media->id(),
+      'url' => $media->originalUrl(),
+      'title' => $media->displayTitle(),
+
+      'lon' => $lon,
+      'lat' => $lat,
+      'height' => 0,
+      'heading' => 0,
+      'pitch' => 0,
+      'roll' => 0,
+      'scale' => 1,
+    ];
+  endif;
+
+endforeach;
+?>
+
+<div class="cesium-wrapper">
+  <div id="cesiumContainer"></div>
+
+  <div id="cesiumLegend" class="is-collapsed">
+    <button
+      type="button"
+      id="cesiumLegendToggle"
+      class="legend-toggle"
+      aria-expanded="false"
+      aria-controls="cesiumLegendPanel">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div id="cesiumLegendPanel" class="legend-panel">
+      <!-- contenuto generato via JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+  window.CESIUM_GEOJSON_LAYERS = <?= json_encode($geojsonLayers, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+  window.CESIUM_GLB_LAYERS = <?= json_encode($glbLayers, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+</script>

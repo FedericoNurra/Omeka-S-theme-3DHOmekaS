@@ -46,7 +46,7 @@ foreach ($item->media() as $media) {
                     </div>
                 </div>
             <?php endif; ?>
-            <hr>
+
 <!-- item linked items -->
 <!-- pagination -->
             <?php $this->trigger('view.show.after'); ?>
@@ -55,6 +55,7 @@ foreach ($item->media() as $media) {
 <!-- item linked items -->
         <?php echo $this->resourcePageBlocks($item, "secondary")->getBlocks(); ?>
     </div>
+
 <!-- item 3D models -->
     <?php $template = 'omeka/site/item/show-media-models.phtml'; ?>
     <?= $this->partial($template, $this->vars()) ?>
